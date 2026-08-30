@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lazza — таблички с QR для столиков</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&family=Manrope:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #16100d;
+    --paper: #f7f2e7;
+    --amber: #e9a23b;
+    --line: rgba(34, 27, 22, 0.16);
+    --display: 'Unbounded', system-ui, sans-serif;
+    --body: 'Manrope', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: #f5ede2;
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .panel {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 34px 22px 10px;
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(1.7rem, 6vw, 2.4rem);
+    letter-spacing: -0.04em;
+    margin: 0 0 8px;
+  }
+
+  h1 em { font-style: normal; color: var(--amber); }
+
+  .lead { margin: 0 0 26px; color: rgba(245, 237, 226, 0.62); max-width: 54ch; }
+
+  .row { display: grid; gap: 14px; grid-template-columns: 1fr; margin-bottom: 16px; }
+  @media (min-width: 620px) { .row { grid-template-columns: 2fr 1fr; } }
+
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--amber);
+  }
+
+  input {
+    width: 100%;
+    padding: 13px 14px;
+    border: 1px solid rgba(245, 237, 226, 0.14);
+    border-radius: 10px;
+    background: rgba(245, 237, 226, 0.05);
+    color: #f5ede2;
+    font-family: var(--mono);
+    font-size: 14px;
+  }
+
+  input:focus { outline: none; border-color: var(--amber); }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; }
+
+  button {
+    padding: 13px 22px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--amber);
+    color: var(--ink);
+    font-family: var(--body);
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+  }
+
+  button.ghost {
+    background: none;
+    border: 1px solid rgba(245, 237, 226, 0.22);
+    color: #f5ede2;
+  }
+
+  button:hover { filter: brightness(1.08); }
+
+  .note {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.7;
+    color: rgba(245, 237, 226, 0.45);
+    border-top: 1px solid rgba(245, 237, 226, 0.08);
+    padding-top: 18px;
+    margin-bottom: 30px;
+  }
+
+  /* --- таблички --- */
+
+  .sheet {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 22px 50px;
+  }
+
+  .tent {
+    background: var(--paper);
+    color: #221b16;
+    border-radius: 14px;
+    padding: 22px 18px 18px;
+    text-align: center;
+    break-inside: avoid;
+  }
+
+  .tent__logo {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 1.5rem;
+    letter-spacing: -0.05em;
+    margin: 0 0 2px;
+  }
+
+  .tent__logo em { font-style: normal; color: #c07f18; }
+
+  .tent__kicker {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0.6;
+    margin-bottom: 16px;
+  }
+
+  .tent__qr {
+    display: grid;
+    place-items: center;
+    padding: 10px;
+    background: #fff;
+    border-radius: 10px;
+    margin-bottom: 14px;
+  }
+
+  .tent__qr img, .tent__qr canvas { display: block; width: 100%; height: auto; max-width: 190px; }
+
+  .tent__table {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: -0.03em;
+    margin-bottom: 3px;
+  }
+
+  .tent__hint {
+    font-size: 10.5px;
+    line-height: 1.5;
+    opacity: 0.62;
+    max-width: 26ch;
+    margin-inline: auto;
+  }
+
+  .tent__cut {
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--line);
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0.4;
+  }
+
+  @media print {
+    body { background: #fff; }
+    .panel { display: none; }
+    .sheet {
+      max-width: none;
+      padding: 0;
+      gap: 8mm;
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .tent { border: 1px dashed #bbb; border-radius: 0; padding: 12mm 8mm; }
+  }
+</style>
+</head>
+<body>
+
+<div class="panel">
+  <h1>Таблички с <em>QR</em> для столиков</h1>
+  <p class="lead">
+    Укажите адрес, по которому опубликовано меню, и количество столиков. Каждая табличка ведёт
+    на своё меню с уже подставленным номером столика — гостю не придётся его вводить.
+    Подписи на табличках — на трёх языках, как и само меню.
+  </p>
+
+  <div class="row">
+    <div>
+      <label for="url">Адрес меню</label>
+      <input id="url" type="url" placeholder="https://lazza.example.com" value="">
+    </div>
+    <div>
+      <label for="count">Столиков</label>
+      <input id="count" type="number" min="1" max="60" value="14">
+    </div>
+  </div>
+
+  <div class="actions">
+    <button id="make" type="button">Собрать таблички</button>
+    <button id="print" class="ghost" type="button">Распечатать</button>
+  </div>
+
+  <p class="note">
+    Печатайте на плотной бумаге и сгибайте по пунктиру — получается настольная табличка.<br>
+    Проверьте каждый код камерой телефона до того, как разложите таблички по залу.
+  </p>
+</div>
+
+<div class="sheet" id="sheet"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var sheet = document.getElementById('sheet');
+  var urlInput = document.getElementById('url');
+  var countInput = document.getElementById('count');
+
+  /* по умолчанию — адрес меню рядом с этим файлом */
+  urlInput.value = location.href.replace(/\/qr\.html.*$/, '/index.html');
+
+  function tent(url, label, hint) {
+    var card = document.createElement('div');
+    card.className = 'tent';
+    card.innerHTML =
+      '<p class="tent__logo">LA<em>ZZ</em>A</p>' +
+      '<p class="tent__kicker">Menyu · Меню · Menu</p>' +
+      '<div class="tent__qr"></div>' +
+      '<p class="tent__table">' + label + '</p>' +
+      '<p class="tent__hint">' + hint + '</p>' +
+      '<p class="tent__cut">Линия сгиба</p>';
+
+    new QRCode(card.querySelector('.tent__qr'), {
+      text: url,
+      width: 320,
+      height: 320,
+      colorDark: '#221b16',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M,
+    });
+
+    return card;
+  }
+
+  function build() {
+    var base = urlInput.value.trim();
+    if (!base) { urlInput.focus(); return; }
+
+    var count = Math.max(1, Math.min(60, Number(countInput.value) || 1));
+    var joiner = base.indexOf('?') > -1 ? '&' : '?';
+
+    sheet.textContent = '';
+    sheet.appendChild(tent(base, 'Lazza',
+      'Kameranı koda tutun<br>Наведите камеру на код<br>Point your camera at the code'));
+
+    for (var i = 1; i <= count; i++) {
+      sheet.appendChild(tent(
+        base + joiner + 'table=' + i,
+        'Masa · Столик · Table&nbsp;' + i,
+        'Kameranı koda tutun — sifariş bu masaya gələcək<br>' +
+        'Наведите камеру — заказ придёт за этот столик<br>' +
+        'Scan — the order comes to this table'
+      ));
+    }
+  }
+
+  document.getElementById('make').addEventListener('click', build);
+  document.getElementById('print').addEventListener('click', function () { window.print(); });
+
+  build();
+})();
+</script>
+</body>
+</html>
