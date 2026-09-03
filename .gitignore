@@ -2,3 +2,4 @@ artifact.html
 server-deploy/
 __pycache__/
 tools/preview.png
+models/*.bak

@@ -40,16 +40,32 @@ def acc(g, b, i):
                         count=n, offset=v.get('byteOffset', 0))
     return arr.reshape(a['count'], NC[a['type']]).astype(np.float64 if a['componentType'] == 5126 else np.int64)
 
+def face_normals(pos, idx):
+    """Нормали по граням — если в файле их нет (бывает у сканов)."""
+    n = np.zeros_like(pos)
+    a, b, c = pos[idx[:, 0]], pos[idx[:, 1]], pos[idx[:, 2]]
+    f = np.cross(b - a, c - a)
+    for k in range(3):
+        np.add.at(n, idx[:, k], f)
+    ln = np.linalg.norm(n, axis=1, keepdims=True)
+    return np.divide(n, ln, out=np.tile([0.0, 1.0, 0.0], (len(n), 1)), where=ln > 1e-12)
+
 def prims(path):
     g, b = load_glb(path)
     out = []
     for p in g['meshes'][0]['primitives']:
         pos = acc(g, b, p['attributes']['POSITION'])
-        nor = acc(g, b, p['attributes']['NORMAL'])
         idx = acc(g, b, p['indices']).reshape(-1, 3)
-        m = g['materials'][p['material']]
-        pbr = m['pbrMetallicRoughness']
-        out.append((pos, nor, idx, pbr['baseColorFactor'], m.get('doubleSided', False)))
+        if 'NORMAL' in p['attributes']:
+            nor = acc(g, b, p['attributes']['NORMAL'])
+        else:
+            nor = face_normals(pos, idx)
+        m = g['materials'][p['material']] if 'material' in p else {}
+        pbr = m.get('pbrMetallicRoughness', {})
+        # текстуры не рисуем — у сканов показываем ровный светлый тон
+        base = pbr.get('baseColorFactor',
+                       [0.62, 0.55, 0.46, 1.0] if 'baseColorTexture' in pbr else [0.8, 0.8, 0.8, 1.0])
+        out.append((pos, nor, idx, base, m.get('doubleSided', False)))
     return out
 
 def lin2srgb(c):
