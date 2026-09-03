@@ -9,6 +9,9 @@ import json, math, os, struct, sys
 import numpy as np
 from PIL import Image, ImageDraw
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import meshkit
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODELS = os.path.join(ROOT, 'models')
 
@@ -50,22 +53,65 @@ def face_normals(pos, idx):
     ln = np.linalg.norm(n, axis=1, keepdims=True)
     return np.divide(n, ln, out=np.tile([0.0, 1.0, 0.0], (len(n), 1)), where=ln > 1e-12)
 
+def _srgb_lin(a):
+    return np.where(a <= 0.04045, a / 12.92, ((a + 0.055) / 1.055) ** 2.4)
+
+def image_bytes(g, blob, img, folder):
+    """Байты картинки: встроенной или лежащей отдельным файлом рядом."""
+    if 'bufferView' in img:
+        v = g['bufferViews'][img['bufferView']]
+        off = v.get('byteOffset', 0)
+        return bytes(blob[off:off + v['byteLength']])
+    uri = img.get('uri')
+    if not uri:
+        return None
+    if uri.startswith('data:'):
+        import base64
+        return base64.b64decode(uri.split(',', 1)[1])
+    from urllib.parse import unquote
+    path = os.path.join(folder, unquote(uri).replace('\\', '/'))
+    return open(path, 'rb').read() if os.path.exists(path) else None
+
+def sample_texture(g, b, pbr, uv, folder=''):
+    """Цвет в каждой вершине из baseColorTexture — чтобы видеть модель как есть."""
+    ref = pbr.get('baseColorTexture')
+    if ref is None or uv is None:
+        return None
+    try:
+        img = g['images'][g['textures'][ref['index']]['source']]
+        data = image_bytes(g, b, img, folder)
+        if data is None:
+            return None
+        from PIL import Image as PILImage
+        import io as _io
+        pic = PILImage.open(_io.BytesIO(data)).convert('RGB')
+    except Exception:
+        return None
+    arr = _srgb_lin(np.asarray(pic).astype(np.float64) / 255.0)
+    h, w = arr.shape[:2]
+    x = np.mod((uv[:, 0] * w).astype(np.int64), w)
+    y = np.mod((uv[:, 1] * h).astype(np.int64), h)
+    return arr[y, x]
+
 def prims(path):
     g, b = load_glb(path)
+    folder = os.path.dirname(os.path.abspath(path))
+    mats = g.get('materials', [])
     out = []
-    for p in g['meshes'][0]['primitives']:
-        pos = acc(g, b, p['attributes']['POSITION'])
-        idx = acc(g, b, p['indices']).reshape(-1, 3)
-        if 'NORMAL' in p['attributes']:
-            nor = acc(g, b, p['attributes']['NORMAL'])
-        else:
-            nor = face_normals(pos, idx)
-        m = g['materials'][p['material']] if 'material' in p else {}
+    for part in meshkit.decode(g, b):
+        pos = part['attrs']['POSITION'].astype(np.float64)
+        idx = part['idx']
+        nor = part['attrs']['NORMAL'].astype(np.float64) if 'NORMAL' in part['attrs'] \
+            else face_normals(pos, idx)
+        uv = part['attrs'].get('TEXCOORD_0')
+
+        m = mats[part['material']] if part['material'] is not None and part['material'] < len(mats) else {}
         pbr = m.get('pbrMetallicRoughness', {})
-        # текстуры не рисуем — у сканов показываем ровный светлый тон
-        base = pbr.get('baseColorFactor',
-                       [0.62, 0.55, 0.46, 1.0] if 'baseColorTexture' in pbr else [0.8, 0.8, 0.8, 1.0])
-        out.append((pos, nor, idx, base, m.get('doubleSided', False)))
+        base = pbr.get('baseColorFactor', [1.0, 1.0, 1.0, 1.0])
+        vcol = sample_texture(g, b, pbr, uv, folder)
+        if vcol is not None:
+            vcol = vcol * np.array(base[:3])[None, :]
+        out.append((pos, nor, idx, base, m.get('doubleSided', False), vcol))
     return out
 
 def lin2srgb(c):
@@ -83,7 +129,7 @@ def render(path, S=250, az=32.0, el=20.0):
     R = Rx @ Ry
 
     ps = prims(path)
-    allv = np.vstack([p[0] for p in ps]) @ R.T
+    allv = np.vstack([p[0] for p in ps]) @ R.T if ps else np.zeros((1, 3))
     lo, hi = allv.min(0), allv.max(0)
     ctr = (lo + hi) / 2.0
     scale = (S * 0.84) / max(hi[0] - lo[0], hi[1] - lo[1], 1e-6)
@@ -91,17 +137,18 @@ def render(path, S=250, az=32.0, el=20.0):
     col = np.zeros((S, S, 3)); col[:] = np.array([0.045, 0.032, 0.026])
     zb = np.full((S, S), -1e9)
 
-    def draw(pos, nor, idx, base, blend):
+    def draw(pos, nor, idx, base, blend, vcol=None):
         v = pos @ R.T
         n = nor @ R.T
         x = (v[:, 0] - ctr[0]) * scale + S / 2.0
         y = S / 2.0 - (v[:, 1] - ctr[1]) * scale
         z = v[:, 2]
-        rgb = np.array(base[:3]); alpha = base[3]
+        alpha = base[3]
+        rgb = vcol if vcol is not None else np.array(base[:3])[None, :]
         sh = (0.26 + 0.10 * n[:, 1]
               + 0.72 * np.clip(n @ L1, 0, None)
               + 0.22 * np.clip(n @ L2, 0, None))
-        vc = rgb[None, :] * sh[:, None]
+        vc = rgb * sh[:, None]
         tri = idx
         if blend:
             order = np.argsort(z[tri].mean(1))
@@ -135,12 +182,12 @@ def render(path, S=250, az=32.0, el=20.0):
                 tgt[m] = cc[m]
                 sub[m] = zz[m]
 
-    for pos, nor, idx, base, ds in ps:
+    for pos, nor, idx, base, ds, vcol in ps:
         if base[3] >= 1.0:
-            draw(pos, nor, idx, base, False)
-    for pos, nor, idx, base, ds in ps:
+            draw(pos, nor, idx, base, False, vcol)
+    for pos, nor, idx, base, ds, vcol in ps:
         if base[3] < 1.0:
-            draw(pos, nor, idx, base, True)
+            draw(pos, nor, idx, base, True, vcol)
 
     return Image.fromarray((lin2srgb(col) * 255).astype(np.uint8))
 
@@ -152,7 +199,9 @@ def main():
     sheet = Image.new('RGB', (cols * S, rows * (S + PAD)), (22, 16, 13))
     d = ImageDraw.Draw(sheet)
     for i, nm in enumerate(names):
-        img = render(os.path.join(MODELS, nm + '.glb'), S)
+        path = nm if os.path.exists(nm) else os.path.join(MODELS, nm + '.glb')
+        nm = os.path.basename(nm)[:-4] if nm.endswith('.glb') else nm
+        img = render(path, S)
         cx, cy = (i % cols) * S, (i // cols) * (S + PAD)
         sheet.paste(img, (cx, cy))
         d.text((cx + 6, cy + S + 3), nm, fill=(233, 162, 59))
