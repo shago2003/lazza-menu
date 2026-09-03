@@ -358,7 +358,7 @@ def main():
     prims = meshkit.decode(gltf, blob)
     if not prims:
         die('в файле нет треугольников')
-    source = meshkit.take_source(gltf, blob)
+    source = meshkit.take_source(gltf, blob, os.path.dirname(os.path.abspath(a.scan)))
 
     rx = a.rx - 90.0 if a.zup else a.rx
     if rx or a.ry:

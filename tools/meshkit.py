@@ -310,8 +310,16 @@ def encode(prims, source):
     gltf['buffers'][0]['byteLength'] = len(blob)
     return gltf, bytes(blob)
 
-def take_source(gltf, blob):
-    """Материалы, текстуры и байты картинок из исходного файла."""
+def take_source(gltf, blob, folder=''):
+    """Материалы, текстуры и байты картинок из исходного файла.
+
+    Картинка бывает не внутри .glb, а отдельным файлом рядом — так
+    устроены, например, бесплатные паки моделей. Такую надо найти
+    и вшить внутрь, иначе на сайте модель будет белой."""
+    import base64
+    import os as _os
+    from urllib.parse import unquote
+
     images = []
     for img in gltf.get('images', []):
         data = None
@@ -319,6 +327,12 @@ def take_source(gltf, blob):
             bv = gltf['bufferViews'][img['bufferView']]
             off = bv.get('byteOffset', 0)
             data = bytes(blob[off:off + bv['byteLength']])
+        elif img.get('uri', '').startswith('data:'):
+            data = base64.b64decode(img['uri'].split(',', 1)[1])
+        elif img.get('uri'):
+            path = _os.path.join(folder, unquote(img['uri']).replace('\\', '/'))
+            if _os.path.exists(path):
+                data = open(path, 'rb').read()
         images.append((img, data))
     return {'materials': gltf.get('materials'), 'textures': gltf.get('textures'),
             'samplers': gltf.get('samplers'), 'images': images}
