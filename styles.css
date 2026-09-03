@@ -1044,8 +1044,87 @@ a { color: inherit; }
 
 .ar__note--warn { color: #ff8a70; }
 
+/* --- экран камеры: блюдо поверх живого видео --- */
+
+.arcam {
+  position: fixed; inset: 0; z-index: 90;
+  background: #070504;
+  overscroll-behavior: contain;
+}
+
+.arcam__video,
+.arcam__model {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+}
+
+.arcam__video { object-fit: cover; }
+
+.arcam__model {
+  background: transparent;          /* сквозь модель видно камеру */
+  --poster-color: transparent;
+  --progress-bar-color: var(--amber);
+}
+
+.arcam__close {
+  position: absolute; z-index: 3;
+  top: calc(14px + env(safe-area-inset-top, 0px));
+  right: calc(14px + env(safe-area-inset-right, 0px));
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: rgba(7, 5, 4, 0.55);
+  backdrop-filter: blur(8px);
+  color: #f5ede2;
+}
+
+.arcam__close svg { width: 20px; height: 20px; }
+
+.arcam__hint {
+  position: absolute; z-index: 3;
+  left: 50%;
+  top: calc(16px + env(safe-area-inset-top, 0px));
+  transform: translateX(-50%);
+  max-width: calc(100% - 130px);
+  margin: 0;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(7, 5, 4, 0.55);
+  backdrop-filter: blur(8px);
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.45;
+  color: rgba(245, 237, 226, 0.82);
+  pointer-events: none;
+  transition: opacity 0.4s;
+}
+
+.arcam__hint--fade { opacity: 0; }
+.arcam__hint--warn { color: #ff8a70; opacity: 1; }
+
+/* «Закрепить на столе» — переход в настоящий AR */
+.arcam__anchor {
+  position: absolute; z-index: 3;
+  left: 50%;
+  bottom: calc(26px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: 9px;
+  white-space: nowrap;
+  padding: 13px 22px;
+  border-radius: 999px;
+  background: var(--amber);
+  color: var(--on-accent);
+  font-weight: 700;
+  font-size: 14.5px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+.arcam__anchor svg { width: 18px; height: 18px; flex: none; }
+.arcam__anchor:active { transform: translateX(-50%) scale(0.97); }
+
 @media (prefers-reduced-motion: reduce) {
-  .ar-toggle, .ar__place { transition: none; }
+  .ar-toggle, .ar__place, .arcam__hint { transition: none; }
 }
 
 .modgroup { margin-top: 26px; }

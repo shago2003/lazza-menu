@@ -55,6 +55,10 @@ const I18N = {
     arPhone: 'Masada görmək üçün telefonla açın',
     arFail: '3D yüklənmədi',
     ar3dBadge: '3D',
+    arPinch: 'Bir barmaq döndərir, iki barmaq ölçünü dəyişir',
+    arAnchor: 'Masaya bərkit',
+    arCamDenied: 'Kameraya icazə lazımdır — brauzer ayarlarından açın',
+    arCamClose: 'Bağla',
 
     /* корзина */
     showOrder: 'Sifarişə bax',
@@ -187,6 +191,10 @@ const I18N = {
     arPhone: 'Чтобы поставить на стол, откройте с телефона',
     arFail: 'Не удалось загрузить 3D',
     ar3dBadge: '3D',
+    arPinch: 'Один палец — поворот, два пальца — размер',
+    arAnchor: 'Закрепить на столе',
+    arCamDenied: 'Нужен доступ к камере — разрешите его в настройках браузера',
+    arCamClose: 'Закрыть',
 
     showOrder: 'Показать заказ',
     receiptSub: 'предварительный счёт',
@@ -314,6 +322,10 @@ const I18N = {
     arPhone: 'Open on a phone to place it on your table',
     arFail: 'Could not load the 3D model',
     ar3dBadge: '3D',
+    arPinch: 'One finger rotates, two fingers resize',
+    arAnchor: 'Anchor to the table',
+    arCamDenied: 'Camera access is needed — allow it in your browser settings',
+    arCamClose: 'Close',
 
     showOrder: 'View order',
     receiptSub: 'preliminary bill',
