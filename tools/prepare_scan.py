@@ -3,8 +3,11 @@
 LAZZA — подготовка отсканированного блюда для сайта.
 
 Вы сняли настоящее блюдо на телефон (Scaniverse, RealityScan, KIRI)
-и выгрузили .glb. Файл почти наверняка не готов к сайту: не того размера,
-висит в воздухе, смещён от центра и весит десятки мегабайт.
+и выгрузили модель. Принимаются .obj (с .mtl и картинкой рядом) и .glb —
+из приложения надёжнее выгружать OBJ, его отдают все сканеры.
+
+Файл из приложения к сайту не готов: не того размера, висит в стороне
+от центра, лежит не на «полу» и весит десятки мегабайт.
 
 Эта команда всё чинит:
 
@@ -21,6 +24,7 @@ LAZZA — подготовка отсканированного блюда дл�
     --tex 2048      максимальная сторона текстуры (по умолчанию 2048)
     --rot-y 90      довернуть блюдо вокруг вертикали, градусы
     --rot-x -8      поправить наклон, если блюдо «падает»
+    --zup           скан сделан в системе «Z вверх» и лежит на боку
     --keep          не трогать текстуры
     --dry           только показать, что получится, ничего не записывать
 """
@@ -303,6 +307,8 @@ def main():
     ap.add_argument('--quality', type=int, default=82, help='качество JPEG, 60-95')
     ap.add_argument('--rot-x', type=float, default=0.0, dest='rx')
     ap.add_argument('--rot-y', type=float, default=0.0, dest='ry')
+    ap.add_argument('--zup', action='store_true',
+                    help='скан в системе «Z вверх» — блюдо лежит на боку')
     ap.add_argument('--keep', action='store_true', help='не трогать текстуры')
     ap.add_argument('--dry', action='store_true', help='ничего не записывать')
     a = ap.parse_args()
@@ -318,17 +324,32 @@ def main():
         print('    Файл всё равно будет создан — проверьте поле model в menu.js.\n')
 
     src_size = os.path.getsize(a.scan)
-    gltf, blob = read_glb(a.scan)
+    ext = os.path.splitext(a.scan)[1].lower()
+
+    if ext == '.obj':
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        try:
+            from objkit import load_obj
+            gltf, blob = load_obj(a.scan)
+        except Exception as err:
+            die('не удалось разобрать OBJ: %s' % err)
+        print('\n  Скан: %s (OBJ, текстура вшивается внутрь)' % os.path.basename(a.scan))
+    elif ext == '.glb':
+        gltf, blob = read_glb(a.scan)
+        print('\n  Скан: %s' % os.path.basename(a.scan))
+    else:
+        die('нужен .obj или .glb, а не «%s». В приложении при выгрузке\n'
+            '     выбирайте OBJ — этот формат отдают все сканеры' % (ext or '?'))
 
     bufs = gltf.get('buffers', [])
     if len(bufs) != 1 or 'uri' in bufs[0]:
-        die('файл ссылается на внешние данные. Выгрузите из приложения один .glb')
+        die('файл ссылается на внешние данные. Выгрузите модель одним файлом')
 
-    print('\n  Скан: %s' % os.path.basename(a.scan))
-    print('  Размер файла: %.1f МБ' % (src_size / 1048576.0))
+    print('  Размер исходника: %.1f МБ' % (src_size / 1048576.0))
 
     # --- габариты и поворот ---
-    extra = rot_matrix(a.rx, a.ry) if (a.rx or a.ry) else None
+    rx = a.rx - 90.0 if a.zup else a.rx
+    extra = rot_matrix(rx, a.ry) if (rx or a.ry) else None
     lo, hi, tris = scene_bounds(gltf, extra)
     dims = [hi[i] - lo[i] for i in range(3)]
     print('  Треугольников: %s' % format(tris, ',d').replace(',', ' '))
@@ -357,8 +378,8 @@ def main():
             -(lo[2] + hi[2]) / 2.0 * scale,
         ],
     }
-    if a.rx or a.ry:
-        wrap['rotation'] = quat_from_xy(a.rx, a.ry)
+    if rx or a.ry:
+        wrap['rotation'] = quat_from_xy(rx, a.ry)
 
     gltf.setdefault('nodes', []).append(wrap)
     scenes[si]['nodes'] = [len(gltf['nodes']) - 1]
@@ -391,7 +412,7 @@ def main():
     check_gltf, _ = read_glb(dest)
     lo2, hi2, _ = scene_bounds(check_gltf)
     print('\n  Готово: models/%s.glb' % name)
-    print('  Размер: %.1f МБ (было %.1f МБ)' % (out_size / 1048576.0, src_size / 1048576.0))
+    print('  Размер: %.1f МБ (исходник %.1f МБ)' % (out_size / 1048576.0, src_size / 1048576.0))
     print('  На столе займёт: %.1f x %.1f см, высота %.1f см'
           % ((hi2[0] - lo2[0]) * 100, (hi2[2] - lo2[2]) * 100, (hi2[1] - lo2[1]) * 100))
 
