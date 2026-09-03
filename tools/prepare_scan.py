@@ -13,6 +13,8 @@ LAZZA — подготовка отсканированного блюда дл�
 
     python tools/prepare_scan.py C:\\путь\\burger.glb burger-classic
 
+  * чистит скан: выбрасывает стол, обрывки в воздухе и мелкий мусор —
+    ровно ту грязь, из-за которой скан выглядит кривым;
   * ставит блюдо на «пол», центрует и масштабирует до натуральной величины
     (по умолчанию — под размер той модели, что уже лежит в models/);
   * уменьшает текстуры до разумных для телефона;
@@ -25,10 +27,16 @@ LAZZA — подготовка отсканированного блюда дл�
     --rot-y 90      довернуть блюдо вокруг вертикали, градусы
     --rot-x -8      поправить наклон, если блюдо «падает»
     --zup           скан сделан в системе «Z вверх» и лежит на боку
+    --floor off     не срезать стол (по умолчанию ищется сам)
+    --radius 70     оставить только центр: проценты от ширины
+    --dirty         не чистить вообще, посмотреть скан как есть
     --keep          не трогать текстуры
     --dry           только показать, что получится, ничего не записывать
 """
-import argparse, base64, io, json, math, os, re, struct, sys
+import argparse, io, json, math, os, re, struct, sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import meshkit
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODELS = os.path.join(ROOT, 'models')
@@ -174,25 +182,17 @@ def scene_bounds(gltf, extra=None):
         die('в сцене не нашлось геометрии с габаритами')
     return lo, hi, tris
 
-def rot_matrix(rx, ry):
+def rot3(rx, ry):
     """Поворот вокруг X и Y, в градусах."""
+    import numpy as np
     cx, sx = math.cos(math.radians(rx)), math.sin(math.radians(rx))
     cy, sy = math.cos(math.radians(ry)), math.sin(math.radians(ry))
-    mx = [1, 0, 0, 0, 0, cx, sx, 0, 0, -sx, cx, 0, 0, 0, 0, 1]
-    my = [cy, 0, -sy, 0, 0, 1, 0, 0, sy, 0, cy, 0, 0, 0, 0, 1]
-    return mat_mul(my, mx)
+    mx = np.array([[1, 0, 0], [0, cx, -sx], [0, sx, cx]])
+    my = np.array([[cy, 0, sy], [0, 1, 0], [-sy, 0, cy]])
+    return my @ mx
 
-def quat_from_xy(rx, ry):
-    """Кватернион того же поворота: сначала X, потом Y."""
-    hx, hy = math.radians(rx) / 2, math.radians(ry) / 2
-    qx = (math.sin(hx), 0.0, 0.0, math.cos(hx))
-    qy = (0.0, math.sin(hy), 0.0, math.cos(hy))
-    # q = qy * qx
-    x = qy[3] * qx[0] + qy[0] * qx[3] + qy[1] * qx[2] - qy[2] * qx[1]
-    y = qy[3] * qx[1] - qy[0] * qx[2] + qy[1] * qx[3] + qy[2] * qx[0]
-    z = qy[3] * qx[2] + qy[0] * qx[1] - qy[1] * qx[0] + qy[2] * qx[3]
-    w = qy[3] * qx[3] - qy[0] * qx[0] - qy[1] * qx[1] - qy[2] * qx[2]
-    return [x, y, z, w]
+def fmt(n):
+    return format(int(n), ',d').replace(',', ' ')
 
 # ============================================================
 #   ТЕКСТУРЫ
@@ -309,6 +309,13 @@ def main():
     ap.add_argument('--rot-y', type=float, default=0.0, dest='ry')
     ap.add_argument('--zup', action='store_true',
                     help='скан в системе «Z вверх» — блюдо лежит на боку')
+    ap.add_argument('--floor', default='auto',
+                    help='срезать стол: auto (по умолчанию), off, либо проценты высоты')
+    ap.add_argument('--radius', type=float, default=100.0,
+                    help='оставить только центр: проценты от ширины, например 70')
+    ap.add_argument('--speck', type=float, default=2.0,
+                    help='обрывки мельче этой доли от модели, %% (по умолчанию 2)')
+    ap.add_argument('--dirty', action='store_true', help='не чистить вообще')
     ap.add_argument('--keep', action='store_true', help='не трогать текстуры')
     ap.add_argument('--dry', action='store_true', help='ничего не записывать')
     a = ap.parse_args()
@@ -348,41 +355,77 @@ def main():
     print('  Размер исходника: %.1f МБ' % (src_size / 1048576.0))
 
     # --- габариты и поворот ---
-    rx = a.rx - 90.0 if a.zup else a.rx
-    extra = rot_matrix(rx, a.ry) if (rx or a.ry) else None
-    lo, hi, tris = scene_bounds(gltf, extra)
-    dims = [hi[i] - lo[i] for i in range(3)]
-    print('  Треугольников: %s' % format(tris, ',d').replace(',', ' '))
-    print('  Габариты в файле: %.3f x %.3f x %.3f (единиц glTF)' % tuple(dims))
+    prims = meshkit.decode(gltf, blob)
+    if not prims:
+        die('в файле нет треугольников')
+    source = meshkit.take_source(gltf, blob)
 
+    rx = a.rx - 90.0 if a.zup else a.rx
+    if rx or a.ry:
+        meshkit.transform(prims, rot=rot3(rx, a.ry))
+
+    tris_before = meshkit.tri_count(prims)
+    lo, hi = meshkit.bounds(prims)
+    print('  Треугольников: %s' % fmt(tris_before))
+    print('  Габариты в файле: %.3f x %.3f x %.3f' % tuple(hi - lo))
+
+    # --- чистка: то, что у профи доводит художник руками ---
+    if not a.dirty:
+        prims, gone = meshkit.drop_specks(prims, a.speck / 100.0)
+        if gone:
+            print('  Обрывков в воздухе убрано: %s треугольников' % fmt(gone))
+
+        cut = None
+        if a.floor == 'auto':
+            cut = meshkit.guess_floor(prims)
+            if cut is not None:
+                lo2, hi2 = meshkit.bounds(prims)
+                share = (cut - lo2[1]) / max(1e-9, hi2[1] - lo2[1]) * 100
+                print('  Похоже на стол внизу — срезаю нижние %.0f%% высоты' % share)
+        elif a.floor != 'off':
+            try:
+                pct = float(a.floor)
+            except ValueError:
+                die('--floor принимает auto, off или число процентов')
+            lo2, hi2 = meshkit.bounds(prims)
+            cut = lo2[1] + (hi2[1] - lo2[1]) * pct / 100.0
+        if cut is not None:
+            prims = meshkit.cut_below(prims, cut)
+            if not prims:
+                die('после среза стола ничего не осталось, попробуйте --floor off')
+
+        if a.radius < 100:
+            lo2, hi2 = meshkit.bounds(prims)
+            centre = ((lo2[0] + hi2[0]) / 2.0, (lo2[2] + hi2[2]) / 2.0)
+            half = max(hi2[0] - lo2[0], hi2[2] - lo2[2]) / 2.0
+            prims = meshkit.cut_outside(prims, half * a.radius / 100.0, centre)
+            if not prims:
+                die('обрезка по радиусу забрала всё, увеличьте --radius')
+
+        prims, _ = meshkit.drop_specks(prims, a.speck / 100.0)
+        if not prims:
+            die('чистка забрала всё. Посмотрите, что в файле: --dirty')
+        after = meshkit.tri_count(prims)
+        if after != tris_before:
+            print('  Осталось от блюда: %s треугольников' % fmt(after))
+
+    # --- масштаб и посадка на пол ---
+    lo, hi = meshkit.bounds(prims)
+    dims = hi - lo
     target_cm = a.size or target_from_existing(name) or 12.0
     footprint = max(dims[0], dims[2])
     if footprint <= 1e-9:
         die('нулевые габариты — похоже, скан пустой')
     scale = (target_cm / 100.0) / footprint
-
     print('  Ставим ширину: %.1f см%s' % (target_cm, '' if a.size else ' (как у текущей модели)'))
 
-    # --- собираем узел-обёртку: поворот, масштаб, посадка на пол ---
-    scenes = gltf.setdefault('scenes', [{'nodes': []}])
-    si = gltf.get('scene', 0)
-    roots = scenes[si].get('nodes', [])
+    meshkit.transform(prims, scale=scale,
+                      offset=(-(lo[0] + hi[0]) / 2.0 * scale,
+                              -lo[1] * scale,
+                              -(lo[2] + hi[2]) / 2.0 * scale))
 
-    wrap = {
-        'name': 'lazza-fit',
-        'children': list(roots),
-        'scale': [scale, scale, scale],
-        'translation': [
-            -(lo[0] + hi[0]) / 2.0 * scale,
-            -lo[1] * scale,
-            -(lo[2] + hi[2]) / 2.0 * scale,
-        ],
-    }
-    if rx or a.ry:
-        wrap['rotation'] = quat_from_xy(rx, a.ry)
-
-    gltf.setdefault('nodes', []).append(wrap)
-    scenes[si]['nodes'] = [len(gltf['nodes']) - 1]
+    tris = meshkit.tri_count(prims)
+    gltf, blob = meshkit.encode(prims, source)
 
     # --- текстуры ---
     if not a.keep:
