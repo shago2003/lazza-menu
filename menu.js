@@ -45,6 +45,19 @@ const CONFIG = {
   defaultTheme: 'dark',
 };
 
+/* ------------------------------------------------------------
+   3D и AR
+
+   model: 'models/burger-classic.glb' — 3D-модель позиции.
+   Если поле есть, у блюда появляется кнопка «Смотреть в 3D»,
+   а с телефона — «Поставить на стол»: камера показывает блюдо
+   на реальном столе в натуральную величину.
+
+   Модели лежат в папке models/. Готовые — стилизованные;
+   чтобы заменить на скан настоящего блюда, положите свой файл
+   .glb с тем же именем. Убрать 3D у позиции — удалить строку model.
+   ------------------------------------------------------------ */
+
 /* Наборы модификаторов — чтобы не повторять их у каждой позиции */
 const MODS = {
   burgerExtras: {
@@ -122,6 +135,7 @@ const MENU = [
     items: [
       {
         id: 'b1', price: 9.90, img: 'images/burger-classic.jpg',
+        model: 'models/burger-classic.glb',
         weight: { v: 240, u: 'g' }, kcal: 620, tag: 'hit',
         name: { az: 'Lazza Classic', ru: 'Lazza Classic', en: 'Lazza Classic' },
         desc: {
@@ -133,6 +147,7 @@ const MENU = [
       },
       {
         id: 'b2', price: 13.50, img: 'images/burger-double.jpg',
+        model: 'models/burger-double.glb',
         weight: { v: 340, u: 'g' }, kcal: 890,
         name: { az: 'Dabl Çiz', ru: 'Дабл Чиз', en: 'Double Cheese' },
         desc: {
@@ -144,6 +159,7 @@ const MENU = [
       },
       {
         id: 'b3', price: 12.50, img: 'images/burger-bacon.jpg',
+        model: 'models/burger-bacon.glb',
         weight: { v: 300, u: 'g' }, kcal: 780,
         name: { az: 'Bekon Smoki', ru: 'Бекон Смоки', en: 'Smoky Bacon' },
         desc: {
@@ -155,6 +171,7 @@ const MENU = [
       },
       {
         id: 'b4', price: 9.50, img: 'images/burger-chicken.jpg',
+        model: 'models/burger-chicken.glb',
         weight: { v: 280, u: 'g' }, kcal: 640,
         name: { az: 'Çiken Krispi', ru: 'Чикен Криспи', en: 'Crispy Chicken' },
         desc: {
@@ -166,6 +183,7 @@ const MENU = [
       },
       {
         id: 'b5', price: 11.90, img: 'images/burger-cheddar.jpg',
+        model: 'models/burger-cheddar.glb',
         weight: { v: 290, u: 'g' }, kcal: 710,
         name: { az: 'Çedder Melt', ru: 'Чеддер Мелт', en: 'Cheddar Melt' },
         desc: {
@@ -177,6 +195,7 @@ const MENU = [
       },
       {
         id: 'b6', price: 16.50, img: 'images/burger-craft.jpg',
+        model: 'models/burger-craft.glb',
         weight: { v: 330, u: 'g' }, kcal: 820, tag: 'new',
         name: { az: 'Blek Anqus', ru: 'Блэк Ангус', en: 'Black Angus' },
         desc: {
@@ -200,6 +219,7 @@ const MENU = [
     items: [
       {
         id: 'c1', price: 14.90, old: 18.50, img: 'images/combo-classic.jpg',
+        model: 'models/combo-classic.glb',
         weight: { v: 620, u: 'g' }, tag: 'deal',
         name: { az: 'Kombo Klassik', ru: 'Комбо Классик', en: 'Classic Combo' },
         desc: {
@@ -220,6 +240,7 @@ const MENU = [
       },
       {
         id: 'c2', price: 27.90, old: 33.50, img: 'images/combo-duo.jpg',
+        model: 'models/combo-duo.glb',
         weight: { v: 1.2, u: 'kg' },
         name: { az: 'İki nəfərlik kombo', ru: 'Комбо на двоих', en: 'Combo for two' },
         desc: {
@@ -239,6 +260,7 @@ const MENU = [
       },
       {
         id: 'c3', price: 18.90, old: 22.50, img: 'images/combo-shake.jpg',
+        model: 'models/combo-shake.glb',
         weight: { v: 780, u: 'g' },
         name: { az: 'Kokteyllə kombo', ru: 'Комбо с шейком', en: 'Shake Combo' },
         desc: {
@@ -271,6 +293,7 @@ const MENU = [
     items: [
       {
         id: 'f1', price: 4.50, img: 'images/fries-classic.jpg',
+        model: 'models/fries-classic.glb',
         weight: { v: 150, u: 'g' }, kcal: 380,
         name: { az: 'Kartof fri', ru: 'Картофель фри', en: 'French fries' },
         desc: {
@@ -282,6 +305,7 @@ const MENU = [
       },
       {
         id: 'f2', price: 7.50, img: 'images/fries-cheese.jpg',
+        model: 'models/fries-cheese.glb',
         weight: { v: 210, u: 'g' }, kcal: 520, tag: 'hit',
         name: { az: 'Pendirli və trüfellı fri', ru: 'Фри с сыром и трюфелем', en: 'Truffle cheese fries' },
         desc: {
@@ -293,6 +317,7 @@ const MENU = [
       },
       {
         id: 'f3', price: 5.50, img: 'images/fries-rustic.jpg',
+        model: 'models/fries-rustic.glb',
         weight: { v: 200, u: 'g' }, kcal: 420,
         name: { az: 'Kənd üsulu kartof', ru: 'Фри по-деревенски', en: 'Rustic potatoes' },
         desc: {
@@ -304,6 +329,7 @@ const MENU = [
       },
       {
         id: 'f4', price: 6.50, img: 'images/onion-rings.jpg',
+        model: 'models/onion-rings.glb',
         weight: { v: 180, u: 'g' }, kcal: 460,
         name: { az: 'Soğan halqaları', ru: 'Луковые кольца', en: 'Onion rings' },
         desc: {
@@ -314,6 +340,7 @@ const MENU = [
       },
       {
         id: 'f5', price: 6.90, img: 'images/nuggets.jpg',
+        model: 'models/nuggets.glb',
         weight: { v: 6, u: 'pcs' },
         name: { az: 'Toyuq naqetsləri', ru: 'Куриные наггетсы', en: 'Chicken nuggets' },
         desc: {
@@ -345,6 +372,7 @@ const MENU = [
       },
       {
         id: 'f6', price: 8.90, img: 'images/strips.jpg',
+        model: 'models/strips.glb',
         weight: { v: 250, u: 'g' }, kcal: 560,
         name: { az: 'Toyuq stripsləri', ru: 'Куриные стрипсы', en: 'Chicken strips' },
         desc: {
@@ -367,6 +395,7 @@ const MENU = [
     items: [
       {
         id: 'k1', price: 3.00, img: 'images/espresso.jpg',
+        model: 'models/espresso.glb',
         weight: { v: 40, u: 'ml' },
         name: { az: 'Espresso', ru: 'Эспрессо', en: 'Espresso' },
         desc: {
@@ -377,6 +406,7 @@ const MENU = [
       },
       {
         id: 'k2', price: 3.50, img: 'images/americano.jpg',
+        model: 'models/americano.glb',
         weight: { v: 250, u: 'ml' },
         name: { az: 'Amerikano', ru: 'Американо', en: 'Americano' },
         desc: {
@@ -388,6 +418,7 @@ const MENU = [
       },
       {
         id: 'k3', price: 4.50, img: 'images/cappuccino.jpg',
+        model: 'models/cappuccino.glb',
         weight: { v: 250, u: 'ml' }, tag: 'hit',
         name: { az: 'Kapuçino', ru: 'Капучино', en: 'Cappuccino' },
         desc: {
@@ -399,6 +430,7 @@ const MENU = [
       },
       {
         id: 'k4', price: 5.00, img: 'images/latte.jpg',
+        model: 'models/latte.glb',
         weight: { v: 350, u: 'ml' },
         name: { az: 'Latte', ru: 'Латте', en: 'Latte' },
         desc: {
@@ -410,6 +442,7 @@ const MENU = [
       },
       {
         id: 'k5', price: 5.20, img: 'images/flat-white.jpg',
+        model: 'models/flat-white.glb',
         weight: { v: 250, u: 'ml' },
         name: { az: 'Flet Vayt', ru: 'Флэт Уайт', en: 'Flat White' },
         desc: {
@@ -421,6 +454,7 @@ const MENU = [
       },
       {
         id: 'k6', price: 6.00, img: 'images/raf.jpg',
+        model: 'models/raf.glb',
         weight: { v: 300, u: 'ml' },
         name: { az: 'Raf', ru: 'Раф', en: 'Raf coffee' },
         desc: {
@@ -432,6 +466,7 @@ const MENU = [
       },
       {
         id: 'k7', price: 5.50, img: 'images/iced-latte.jpg',
+        model: 'models/iced-latte.glb',
         weight: { v: 400, u: 'ml' },
         name: { az: 'Ays Latte', ru: 'Айс Латте', en: 'Iced Latte' },
         desc: {
@@ -443,6 +478,7 @@ const MENU = [
       },
       {
         id: 'k8', price: 6.00, img: 'images/cold-brew.jpg',
+        model: 'models/cold-brew.glb',
         weight: { v: 400, u: 'ml' }, tag: 'new',
         name: { az: 'Kold Bryu', ru: 'Колд Брю', en: 'Cold Brew' },
         desc: {
@@ -465,6 +501,7 @@ const MENU = [
     items: [
       {
         id: 'd1', price: 6.50, img: 'images/matcha.jpg',
+        model: 'models/matcha.glb',
         weight: { v: 350, u: 'ml' },
         name: { az: 'Matça Latte', ru: 'Матча Латте', en: 'Matcha Latte' },
         desc: {
@@ -476,6 +513,7 @@ const MENU = [
       },
       {
         id: 'd2', price: 5.50, img: 'images/cocoa.jpg',
+        model: 'models/cocoa.glb',
         weight: { v: 300, u: 'ml' },
         name: { az: 'İsti şokolad', ru: 'Горячий шоколад', en: 'Hot chocolate' },
         desc: {
@@ -486,6 +524,7 @@ const MENU = [
       },
       {
         id: 'd3', price: 3.50, img: 'images/tea.jpg',
+        model: 'models/tea.glb',
         weight: { v: 500, u: 'ml' },
         name: { az: 'Çay', ru: 'Чай', en: 'Tea' },
         desc: {
@@ -506,6 +545,7 @@ const MENU = [
       },
       {
         id: 'd4', price: 5.00, img: 'images/lemonade.jpg',
+        model: 'models/lemonade.glb',
         weight: { v: 400, u: 'ml' },
         name: { az: 'Ev limonadı', ru: 'Домашний лимонад', en: 'House lemonade' },
         desc: {
@@ -525,6 +565,7 @@ const MENU = [
       },
       {
         id: 'd5', price: 5.50, img: 'images/berry-lemonade.jpg',
+        model: 'models/berry-lemonade.glb',
         weight: { v: 400, u: 'ml' },
         name: { az: 'Giləmeyvə limonadı', ru: 'Ягодный лимонад', en: 'Berry lemonade' },
         desc: {
@@ -535,6 +576,7 @@ const MENU = [
       },
       {
         id: 'd6', price: 6.00, img: 'images/orange-juice.jpg',
+        model: 'models/orange-juice.glb',
         weight: { v: 300, u: 'ml' },
         name: { az: 'Portağal freşi', ru: 'Апельсиновый фреш', en: 'Fresh orange juice' },
         desc: {
@@ -545,6 +587,7 @@ const MENU = [
       },
       {
         id: 'd7', price: 2.50, img: 'images/cola.jpg',
+        model: 'models/cola.glb',
         weight: { v: 400, u: 'ml' },
         name: { az: 'Kola', ru: 'Кола', en: 'Cola' },
         desc: {
@@ -555,6 +598,7 @@ const MENU = [
       },
       {
         id: 'd8', price: 6.90, img: 'images/smoothie.jpg',
+        model: 'models/smoothie.glb',
         weight: { v: 400, u: 'ml' },
         name: { az: 'Giləmeyvə smuzi', ru: 'Ягодный смузи', en: 'Berry smoothie' },
         desc: {
@@ -565,6 +609,7 @@ const MENU = [
       },
       {
         id: 'd9', price: 6.50, img: 'images/milkshake.jpg',
+        model: 'models/milkshake.glb',
         weight: { v: 400, u: 'ml' }, tag: 'hit',
         name: { az: 'Süd kokteyli', ru: 'Молочный коктейль', en: 'Milkshake' },
         desc: {
@@ -597,6 +642,7 @@ const MENU = [
     items: [
       {
         id: 's1', price: 6.50, img: 'images/cheesecake.jpg',
+        model: 'models/cheesecake.glb',
         weight: { v: 140, u: 'g' }, kcal: 390,
         name: { az: 'Nyu-York çizkeyki', ru: 'Чизкейк Нью-Йорк', en: 'New York cheesecake' },
         desc: {
@@ -607,6 +653,7 @@ const MENU = [
       },
       {
         id: 's2', price: 6.90, img: 'images/cheesecake-berry.jpg',
+        model: 'models/cheesecake-berry.glb',
         weight: { v: 150, u: 'g' }, kcal: 410,
         name: { az: 'Qaragilə çizkeyki', ru: 'Чизкейк с черникой', en: 'Blueberry cheesecake' },
         desc: {
@@ -617,6 +664,7 @@ const MENU = [
       },
       {
         id: 's3', price: 5.50, img: 'images/brownie.jpg',
+        model: 'models/brownie.glb',
         weight: { v: 120, u: 'g' }, kcal: 450, tag: 'hit',
         name: { az: 'Şokoladlı brauni', ru: 'Шоколадный брауни', en: 'Chocolate brownie' },
         desc: {
@@ -627,6 +675,7 @@ const MENU = [
       },
       {
         id: 's4', price: 3.50, img: 'images/croissant.jpg',
+        model: 'models/croissant.glb',
         weight: { v: 90, u: 'g' }, kcal: 280,
         name: { az: 'Kruassan', ru: 'Круассан', en: 'Croissant' },
         desc: {
@@ -637,6 +686,7 @@ const MENU = [
       },
       {
         id: 's5', price: 7.50, img: 'images/pancakes.jpg',
+        model: 'models/pancakes.glb',
         weight: { v: 260, u: 'g' }, kcal: 520,
         name: { az: 'Penkeyklər', ru: 'Панкейки', en: 'Pancakes' },
         desc: {

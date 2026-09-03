@@ -46,6 +46,16 @@ const I18N = {
     noExtra: 'əlavə ödənişsiz',
     addToOrder: 'Sifarişə',
 
+    /* 3D və AR */
+    ar3d: '3D-də bax',
+    arPhoto: 'Foto',
+    arPlace: 'Masaya qoy',
+    arLoading: 'Model yüklənir…',
+    arDrag: 'Fırlatmaq üçün barmağınızla sürüşdürün',
+    arPhone: 'Masada görmək üçün telefonla açın',
+    arFail: '3D yüklənmədi',
+    ar3dBadge: '3D',
+
     /* корзина */
     showOrder: 'Sifarişə bax',
     receiptSub: 'ilkin hesab',
@@ -168,6 +178,16 @@ const I18N = {
     noExtra: 'без доплаты',
     addToOrder: 'В заказ',
 
+    /* 3D и AR */
+    ar3d: 'Смотреть в 3D',
+    arPhoto: 'Фото',
+    arPlace: 'Поставить на стол',
+    arLoading: 'Загружаем модель…',
+    arDrag: 'Проведите пальцем, чтобы повернуть',
+    arPhone: 'Чтобы поставить на стол, откройте с телефона',
+    arFail: 'Не удалось загрузить 3D',
+    ar3dBadge: '3D',
+
     showOrder: 'Показать заказ',
     receiptSub: 'предварительный счёт',
     emptyTitle: 'Пока пусто',
@@ -284,6 +304,16 @@ const I18N = {
     chooseMany: 'pick any',
     noExtra: 'no extra charge',
     addToOrder: 'Add',
+
+    /* 3D and AR */
+    ar3d: 'View in 3D',
+    arPhoto: 'Photo',
+    arPlace: 'Place on table',
+    arLoading: 'Loading model…',
+    arDrag: 'Drag to rotate',
+    arPhone: 'Open on a phone to place it on your table',
+    arFail: 'Could not load the 3D model',
+    ar3dBadge: '3D',
 
     showOrder: 'View order',
     receiptSub: 'preliminary bill',

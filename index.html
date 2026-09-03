@@ -36,6 +36,8 @@
   <symbol id="i-insta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></symbol>
   <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.2A8.6 8.6 0 019.8 3.5a8.7 8.7 0 102 17.1 8.7 8.7 0 008.7-6.4z"/></symbol>
+  <symbol id="i-cube" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.9l8 4.35v9.5L12 21.1l-8-4.35v-9.5L12 2.9z"/><path d="M4 7.25l8 4.35 8-4.35M12 11.6v9.5"/></symbol>
+  <symbol id="i-ar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.6V5.7A2.7 2.7 0 015.7 3h2.9M15.4 3h2.9A2.7 2.7 0 0121 5.7v2.9M21 15.4v2.9a2.7 2.7 0 01-2.7 2.7h-2.9M8.6 21H5.7A2.7 2.7 0 013 18.3v-2.9"/><path d="M12 8.4l3.5 2v4l-3.5 2-3.5-2v-4l3.5-2z"/></symbol>
   <symbol id="i-pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></symbol>
 </svg>
 
@@ -155,6 +157,14 @@
     <div class="sheet__scroll">
       <div class="detail__media">
         <img id="detailImg" src="" alt="">
+
+        <!-- 3D-модель блюда; наполняется из ar.js только по нажатию гостя -->
+        <div class="ar" id="arStage" hidden></div>
+        <button class="ar-toggle" id="arToggle" type="button" hidden>
+          <svg aria-hidden="true"><use href="#i-cube"/></svg>
+          <span id="arToggleText"></span>
+        </button>
+
         <button class="sheet__close" data-close type="button" aria-label="✕">
           <svg><use href="#i-close"/></svg>
         </button>
@@ -313,6 +323,7 @@
 
 <script src="i18n.js"></script>
 <script src="menu.js"></script>
+<script src="ar.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

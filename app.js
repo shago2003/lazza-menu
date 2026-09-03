@@ -356,6 +356,7 @@
       '<article class="card' + (item.tag ? ' card--feature' : '') + '" data-card="' + item.id + '">' +
         '<div class="card__media">' +
           (item.tag ? '<span class="badge' + badgeClass + '">' + esc(tagText) + '</span>' : '') +
+          (item.model ? '<span class="chip3d">' + esc(t('ar3dBadge')) + '</span>' : '') +
           '<img src="' + item.img + '" alt="' + esc(L(item.name)) + '" loading="lazy" decoding="async">' +
         '</div>' +
         '<div class="card__body">' +
@@ -544,6 +545,8 @@
     $('#qtyN').textContent = draft.qty;
     $('#qtyMinus').disabled = draft.qty <= 1;
     updateDetailSum();
+
+    if (window.LazzaAR) window.LazzaAR.sync(item, t);
   }
 
   function updateDetailSum() {
@@ -881,7 +884,10 @@
     if (!activeSheet) return;
     const sheet = activeSheet;
     activeSheet = null;
-    if (sheet.id === 'detailSheet') draft = null;
+    if (sheet.id === 'detailSheet') {
+      draft = null;
+      if (window.LazzaAR) window.LazzaAR.reset();
+    }
 
     sheet.classList.remove('is-open');
     $('#scrim').classList.remove('is-open');

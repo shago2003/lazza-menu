@@ -1,0 +1,5 @@
+# 3D-модели — двоичные файлы, Git не должен трогать переводы строк
+*.glb binary
+*.usdz binary
+*.jpg binary
+*.png binary

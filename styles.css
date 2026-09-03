@@ -938,6 +938,116 @@ a { color: inherit; }
   color: var(--text-2);
 }
 
+/* ============================================================
+   3D И ДОПОЛНЕННАЯ РЕАЛЬНОСТЬ
+   ============================================================ */
+
+/* метка «3D» на карточке в меню */
+.chip3d {
+  position: absolute; top: 10px; right: 10px; z-index: 2;
+  padding: 4px 8px;
+  border: 1px solid var(--t22);
+  border-radius: 999px;
+  background: rgba(13, 9, 7, 0.6);
+  backdrop-filter: blur(6px);
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--text);
+}
+
+/* сцена поверх фотографии блюда */
+.ar {
+  position: absolute; inset: 0; z-index: 3;
+  background: radial-gradient(120% 92% at 50% 10%, var(--surface-2), var(--surface));
+}
+
+.ar model-viewer {
+  width: 100%; height: 100%;
+  background: transparent;
+  --poster-color: transparent;
+  --progress-bar-color: var(--amber);
+  --progress-mask: transparent;
+}
+
+/* пока открыт 3D, окну просмотра нужно больше высоты — но не весь экран */
+.detail__media:has(.ar:not([hidden])) {
+  aspect-ratio: 1 / 1;
+  max-height: 50vh;
+}
+
+/* переключатель «фото ↔ 3D» */
+.ar-toggle {
+  position: absolute; left: 14px; bottom: 14px; z-index: 5;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 14px;
+  border: 1px solid var(--t22);
+  border-radius: 999px;
+  background: rgba(13, 9, 7, 0.72);
+  backdrop-filter: blur(8px);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 13px;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.ar-toggle svg { width: 16px; height: 16px; flex: none; }
+.ar-toggle:hover { border-color: var(--amber); }
+.ar-toggle:disabled { opacity: 0.5; }
+
+.ar-toggle--on {
+  background: var(--amber);
+  border-color: var(--amber);
+  color: var(--on-accent);
+}
+
+/* кнопка «поставить на стол» — запускает камеру */
+.ar__place {
+  position: absolute; right: 14px; bottom: 14px; z-index: 6;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 16px;
+  border-radius: 999px;
+  background: var(--amber);
+  color: var(--on-accent);
+  font-weight: 700;
+  font-size: 13.5px;
+  box-shadow: var(--shadow-md);
+  transition: transform 0.15s, filter 0.2s;
+}
+
+.ar__place svg { width: 17px; height: 17px; flex: none; }
+.ar__place:hover { filter: brightness(1.07); }
+.ar__place:active { transform: scale(0.97); }
+
+/* строка состояния над сценой — читается и поверх светлого фото */
+.ar__note {
+  position: absolute; left: 50%; top: 12px; z-index: 4;
+  transform: translateX(-50%);
+  max-width: calc(100% - 108px);
+  margin: 0;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(13, 9, 7, 0.55);
+  backdrop-filter: blur(6px);
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  line-height: 1.45;
+  color: rgba(245, 237, 226, 0.72);
+  pointer-events: none;
+  transition: opacity 0.35s;
+}
+
+.ar__note--fade { opacity: 0; }
+
+.ar__note--warn { color: #ff8a70; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ar-toggle, .ar__place { transition: none; }
+}
+
 .modgroup { margin-top: 26px; }
 
 .modgroup__title {
