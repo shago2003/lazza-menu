@@ -396,7 +396,7 @@ def main():
 
         if a.radius < 100:
             lo2, hi2 = meshkit.bounds(prims)
-            centre = ((lo2[0] + hi2[0]) / 2.0, (lo2[2] + hi2[2]) / 2.0)
+            centre = meshkit.body_centre(prims)
             half = max(hi2[0] - lo2[0], hi2[2] - lo2[2]) / 2.0
             prims = meshkit.cut_outside(prims, half * a.radius / 100.0, centre)
             if not prims:

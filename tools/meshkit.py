@@ -209,6 +209,19 @@ def cut_below(prims, y):
         masks.append(~(py[p['idx']] < y).all(axis=1))
     return _keep_tris(prims, masks)
 
+def body_centre(prims, above=0.25):
+    """Центр блюда по геометрии выше подставки.
+
+    У сканов блюдо часто лежит не по центру салфетки или доски, и обрезка
+    по центру габаритов режет само блюдо. Нижнюю долю высоты пропускаем —
+    там подложка, — а по остальному берём медиану, она устойчива к хвостам."""
+    lo, hi = bounds(prims)
+    pts = np.vstack([p['attrs']['POSITION'][np.unique(p['idx'])] for p in prims])
+    sel = pts[pts[:, 1] > lo[1] + (hi[1] - lo[1]) * above]
+    if len(sel) < 20:
+        sel = pts
+    return (float(np.median(sel[:, 0])), float(np.median(sel[:, 2])))
+
 def cut_outside(prims, radius, center):
     """Срезает всё дальше radius от вертикальной оси в точке center (x, z)."""
     masks = []

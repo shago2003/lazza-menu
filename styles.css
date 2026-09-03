@@ -769,6 +769,18 @@ a { color: inherit; }
   line-height: 1.7;
 }
 
+/* авторы 3D-моделей — этого требует лицензия CC BY */
+.footer__credit {
+  margin-top: 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-3);
+  line-height: 1.6;
+}
+
+.footer__credit a { color: var(--text-3); text-decoration: underline; }
+.footer__credit a:hover { color: var(--amber-text); }
+
 /* ============================================================
    ПЛАВАЮЩАЯ КОРЗИНА
    ============================================================ */
